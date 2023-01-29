@@ -570,9 +570,8 @@ namespace LootBeams
         public bool ColorMode { get; set; }
 
         [Label("Use Simplified Rendering")]
-        [Tooltip("Disables dynamic rendering in favor of a multiplayer-compatible system\n" +
+        [Tooltip("Disables dynamic rendering in favor of a simpler implementation\n" +
             "In short this means that the beams will not fade in, and the glow effect will not pulse\n" +
-            "This should fix cases of the beam occasionally \"refreshing\" at the cost of the beams being less dynamic\n" +
             "Scale and opacity configuration options will still apply\n" +
             "Default: Off")]
         [DefaultValue(false)]
