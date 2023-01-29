@@ -136,6 +136,8 @@ namespace LootBeams
             ItemDefinition itemd = new ItemDefinition(item.type);
             if (!Main.dedServ && Main.netMode != NetmodeID.Server && !config.CustomBlacklist.Contains(itemd))
             {
+                if (beamDir == 0)
+                    beamDir = 1;
                 beamAlpha += (float)beamDir * .0125f;
                 if (beamAlpha > 1f)
                 {
