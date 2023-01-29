@@ -35,6 +35,17 @@ namespace LootBeams
 
         public int type = ItemID.None;
         public bool init = false;
+
+        public LootBeamData(Vector3 rarityColor, Color beamColor, float fadeIn, float beamAlpha, int beamDir, int type, bool init)
+        {
+            this.rarityColor = rarityColor;
+            this.beamColor = beamColor;
+            this.fadeIn = fadeIn;
+            this.beamAlpha = beamAlpha;
+            this.beamDir = beamDir;
+            this.type = type;
+            this.init = init;
+        }
     }
 
     public class LootBeamPlayer : ModPlayer
