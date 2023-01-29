@@ -23,30 +23,105 @@ namespace LootBeams
             modRarities.Clear();
         }
     }
-    public class LootBeamItem : GlobalItem
+
+    //Simplifies initialization as struct
+    public struct LootBeamData
     {
-        LootBeamConfig config = ModContent.GetInstance<LootBeamConfig>();
+        public Vector3 rarityColor;
+        public Color beamColor;
+        public float fadeIn = 0f;
+        public float beamAlpha = 0f;
+        public int beamDir = 1;
 
-        public override bool InstancePerEntity => true;
+        public int type = ItemID.None;
+        public bool init = false;
+    }
 
-        private float fadeIn = 0f;
-        private float beamAlpha = 0f;
-        private int beamDir = 1;
-        private Vector3 rarityColor;
-        private Color beamColor = Color.White;
-
-        public override void UpdateInventory(Item item, Player player)
+    public class LootBeamPlayer : ModPlayer
+    {
+        public override void OnEnterWorld(Player player)
         {
-            if (!Main.dedServ && Main.netMode != NetmodeID.Server)
+            //Otherwise when world hopping there's a chance that the beams stay
+            LootBeamSystem.Init();
+        }
+    }
+
+    public class LootBeamSystem : ModSystem
+    {
+        //Since the mod is only doing visuals, to avoid having to sync instanced GlobalItem data (needed to avoid bugs like resetting the beam), we store our data in a static array
+        //to simulate instanced data. We have to manually manage the (de)-initialization of this data
+        public static LootBeamData[] lootBeamDataByIndex; //Only works for in-world items
+
+        public static void Init()
+        {
+            lootBeamDataByIndex = new LootBeamData[Main.maxItems];
+        }
+
+        public override void Load()
+        {
+            Init();
+        }
+
+        public override void Unload()
+        {
+            lootBeamDataByIndex = null;
+        }
+
+        public override void PostUpdateItems()
+        {
+            for (int i = 0; i < lootBeamDataByIndex.Length; i++)
             {
-                fadeIn = 0f;
-                beamAlpha = 0f;
-                beamDir = 1;
+                if (i >= Main.maxItems)
+                    return;
+
+                Item item = Main.item[i];
+                ref LootBeamData lootBeamData = ref lootBeamDataByIndex[i];
+
+                if (!item.active && lootBeamData.type > ItemID.None)
+                {
+                    //Reset data of items that despawned
+                    lootBeamData = new LootBeamData();
+                    continue;
+                }
+
+                if (!item.active || item.type == ItemID.None)
+                    continue;
+
+                if (lootBeamData.type != item.type)
+                {
+                    //Refresh/initialize the loot beam of this item
+                    lootBeamData = new LootBeamData
+                    {
+                        type = item.type,
+                        init = true
+                    };
+                }
             }
         }
+    }
+
+    public class LootBeamItem : GlobalItem
+    {
+        LootBeamConfig config => ModContent.GetInstance<LootBeamConfig>();
 
         public override bool PreDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
         {
+            //Edge case: Somehow whoAmI is bigger than the initial length
+            if (whoAmI >= LootBeamSystem.lootBeamDataByIndex.Length)
+                Array.Resize(ref LootBeamSystem.lootBeamDataByIndex, whoAmI + 1); //No need to init new entries as the type is not a class
+
+            //All ref as we are modifying persistent data
+            ref LootBeamData lootBeamData = ref LootBeamSystem.lootBeamDataByIndex[whoAmI];
+
+            if (!lootBeamData.init)
+                return base.PreDrawInWorld(item, spriteBatch, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+
+            ref Vector3 rarityColor = ref lootBeamData.rarityColor;
+            ref Color beamColor = ref lootBeamData.beamColor;
+            ref float fadeIn = ref lootBeamData.fadeIn;
+            ref float beamAlpha = ref lootBeamData.beamAlpha;
+            ref int beamDir = ref lootBeamData.beamDir;
+
             ItemDefinition itemd = new ItemDefinition(item.type);
             if (!Main.dedServ && Main.netMode != NetmodeID.Server && !config.CustomBlacklist.Contains(itemd))
             {
