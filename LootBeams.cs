@@ -10,8 +10,8 @@ using Terraria.ModLoader.Config;
 
 namespace LootBeams
 {
-	public class LootBeams : Mod
-	{
+    public class LootBeams : Mod
+    {
         public static Dictionary<int, string> modRarities = new Dictionary<int, string>();
         public override void PostSetupContent()
         {
@@ -23,7 +23,7 @@ namespace LootBeams
             modRarities.Clear();
         }
     }
-	public class LootBeamItem : GlobalItem
+    public class LootBeamItem : GlobalItem
     {
         LootBeamConfig config = ModContent.GetInstance<LootBeamConfig>();
 
@@ -181,7 +181,7 @@ namespace LootBeams
                                 rarityColor = color.ToVector3() * new Vector3(255);
                         }
                     }
-                    catch 
+                    catch
                     {
                         Mod.Logger.Error("[LootBeams] ItemDefinition or Color is invalid! How did this happen?");
                     };
@@ -312,7 +312,7 @@ namespace LootBeams
         [Tooltip("Allows customizing loot beam colors for specific items.\n" +
             "Currently does not support rarity-wide color definitions.\n" +
             "Note: Alpha value goes unused, but should be set to 255 for an accurate color preview.")]
-        public Dictionary<ItemDefinition, Color> ColorOverrides = new Dictionary<ItemDefinition, Color >
+        public Dictionary<ItemDefinition, Color> ColorOverrides = new Dictionary<ItemDefinition, Color>
             {
                 { new ItemDefinition(ItemID.CopperCoin), new Color(.95f, .55f, .4f, 1f) },
                 { new ItemDefinition(ItemID.SilverCoin), new Color(.7f, .75f, .75f, 1f) },
