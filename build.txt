@@ -1,0 +1,3 @@
+displayName = Loot Beams
+author = ChemAtDark
+version = 1.5.2
