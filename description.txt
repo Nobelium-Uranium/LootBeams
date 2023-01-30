@@ -5,3 +5,5 @@ Gives items Borderlands-style loot beams, with the colors corresponding to their
 The mod is fairly configurable, there's a minimum rarity and value of items required for loot beams to appear, a whitelist and blacklist system, a way to customize the beam colors for specific items, as well as the ability to toggle an alternate color mode for those looking for the complete Borderlands experience.
 
 IMPORTANT: If you're using Calamity alongside this mod, I highly recommend also using the Calamity Rarities mod, which can be found here: https://steamcommunity.com/sharedfiles/filedetails/?id=2853817477
+
+If you have a bug to report or would like to contribute, consider checking out the mod's github repository: https://github.com/Nobelium-Uranium/LootBeams
