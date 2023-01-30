@@ -134,7 +134,7 @@ namespace LootBeams
             ref int beamDir = ref lootBeamData.beamDir;
 
             ItemDefinition itemd = new ItemDefinition(item.type);
-            if (!Main.dedServ && Main.netMode != NetmodeID.Server && !config.CustomBlacklist.Contains(itemd))
+            if (!config.CustomBlacklist.Contains(itemd))
             {
                 if (beamDir == 0)
                     beamDir = 1;
