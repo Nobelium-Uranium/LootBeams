@@ -1,7 +1,6 @@
 A special thank-you to everyone who has supported this small mod that I threw together in a few minutes, I never would have imagined something like this becoming as popular as it is, and for that I am very grateful.
 
 Gives items Borderlands-style loot beams, with the colors corresponding to their rarity. That's about as simple of a description as you can get.
-Due to how it implements the effect, this mod is NOT client-side. However, the configuration options should be entirely client-sided.
 
 The mod is fairly configurable, there's a minimum rarity and value of items required for loot beams to appear, a whitelist and blacklist system, a way to customize the beam colors for specific items, as well as the ability to toggle an alternate color mode for those looking for the complete Borderlands experience.
 
