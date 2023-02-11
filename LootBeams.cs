@@ -113,7 +113,7 @@ namespace LootBeams
 
     public class LootBeamItem : GlobalItem
     {
-        LootBeamConfig config => ModContent.GetInstance<LootBeamConfig>();
+        static LootBeamConfig config => ModContent.GetInstance<LootBeamConfig>();
 
         public override bool PreDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
         {
@@ -149,238 +149,114 @@ namespace LootBeams
                     beamAlpha = 0f;
                     beamDir = 1;
                 }
-
-                if (config.ColorMode)
+                #region Color Handling
+                if (item.expert || item.rare == ItemRarityID.Expert)
+                    rarityColor = Main.DiscoColor.ToVector3() * new Vector3(255);
+                else if (item.master || item.rare == ItemRarityID.Master)
+                    rarityColor = new Vector3(255, Main.masterColor * 200, 0f);
+                else if (!(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
                 {
-                    if (item.expert || item.rare == ItemRarityID.Expert)
-                        rarityColor = new Vector3(255, 106, 0);
-                    else if (item.master || item.rare == ItemRarityID.Master)
-                        rarityColor = new Vector3(0, 255, 144);
-                    else if (!(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
+                    switch (item.rare)
                     {
-                        switch (item.value)
-                        {
-                            case >= 500 and < 5000:
-                                rarityColor = new Vector3(76, 255, 0);
-                                break;
-                            case >= 5000 and < 50000:
-                                rarityColor = new Vector3(0, 148, 255);
-                                break;
-                            case >= 50000 and < 500000:
-                                rarityColor = new Vector3(72, 0, 255);
-                                break;
-                            case >= 500000:
-                                rarityColor = new Vector3(255, 106, 0);
-                                break;
-                            case ItemRarityID.Quest:
-                                rarityColor = new Vector3(0, 255, 144);
-                                break;
-                            default:
-                                rarityColor = new Vector3(255, 255, 255);
-                                break;
-                        }
-                    }
-                    switch (item.type)
-                    {
-                        case ItemID.NebulaPickup1: //Damage
-                            rarityColor = new Vector3(255, 0, 255);
+                        case ItemRarityID.Gray:
+                            rarityColor = new Vector3(100, 100, 100);
                             break;
-                        case ItemID.NebulaPickup2: //Life
-                            rarityColor = new Vector3(210, 105, 30);
+                        case ItemRarityID.Blue:
+                            rarityColor = new Vector3(134, 134, 229);
                             break;
-                        case ItemID.NebulaPickup3: //Mana
-                            rarityColor = new Vector3(128, 0, 128);
+                        case ItemRarityID.Green:
+                            rarityColor = new Vector3(146, 248, 146);
+                            break;
+                        case ItemRarityID.Orange:
+                            rarityColor = new Vector3(233, 182, 136);
+                            break;
+                        case ItemRarityID.LightRed:
+                            rarityColor = new Vector3(244, 144, 144);
+                            break;
+                        case ItemRarityID.Pink:
+                            rarityColor = new Vector3(248, 146, 248);
+                            break;
+                        case ItemRarityID.LightPurple:
+                            rarityColor = new Vector3(190, 144, 229);
+                            break;
+                        case ItemRarityID.Lime:
+                            rarityColor = new Vector3(140, 241, 10);
+                            break;
+                        case ItemRarityID.Yellow:
+                            rarityColor = new Vector3(249, 249, 9);
+                            break;
+                        case ItemRarityID.Cyan:
+                            rarityColor = new Vector3(4, 195, 249);
+                            break;
+                        case ItemRarityID.Red:
+                            rarityColor = new Vector3(225, 6, 67);
+                            break;
+                        case ItemRarityID.Purple:
+                            rarityColor = new Vector3(178, 39, 253);
+                            break;
+                        case ItemRarityID.Quest:
+                            rarityColor = new Vector3(241, 165, 0);
                             break;
                         default:
+                            rarityColor = new Vector3(255, 255, 255);
                             break;
                     }
-                    if (item.type == ItemID.Heart || item.type == ItemID.CandyApple || item.type == ItemID.CandyCane)
-                        rarityColor = new Vector3(255, 0, 0);
-                    else if (item.type == ItemID.Star || item.type == ItemID.SoulCake || item.type == ItemID.SugarPlum || item.type == ItemID.ManaCloakStar)
-                        rarityColor = new Vector3(0, 0, 255);
-                    else if (item.type == ItemID.CopperCoin || item.type == ItemID.SilverCoin || item.type == ItemID.GoldCoin || item.type == ItemID.PlatinumCoin)
-                        rarityColor = new Vector3(255, 216, 0);
-                    else if (item.type == ItemID.DD2EnergyCrystal || item.type == ItemID.DefenderMedal)
-                        rarityColor = new Vector3(0, 255, 144);
                 }
-                else
+                if (LootBeams.modRarities.TryGetValue(item.rare, out string name))
                 {
-                    if (item.expert || item.rare == ItemRarityID.Expert)
-                        rarityColor = Main.DiscoColor.ToVector3() * new Vector3(255);
-                    else if (item.master || item.rare == ItemRarityID.Master)
-                        rarityColor = new Vector3(255, Main.masterColor * 200, 0f);
-                    else if (!(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
-                    {
-                        switch (item.rare)
-                        {
-                            case ItemRarityID.Gray:
-                                rarityColor = new Vector3(100, 100, 100);
-                                break;
-                            case ItemRarityID.Blue:
-                                rarityColor = new Vector3(134, 134, 229);
-                                break;
-                            case ItemRarityID.Green:
-                                rarityColor = new Vector3(146, 248, 146);
-                                break;
-                            case ItemRarityID.Orange:
-                                rarityColor = new Vector3(233, 182, 136);
-                                break;
-                            case ItemRarityID.LightRed:
-                                rarityColor = new Vector3(244, 144, 144);
-                                break;
-                            case ItemRarityID.Pink:
-                                rarityColor = new Vector3(248, 146, 248);
-                                break;
-                            case ItemRarityID.LightPurple:
-                                rarityColor = new Vector3(190, 144, 229);
-                                break;
-                            case ItemRarityID.Lime:
-                                rarityColor = new Vector3(140, 241, 10);
-                                break;
-                            case ItemRarityID.Yellow:
-                                rarityColor = new Vector3(249, 249, 9);
-                                break;
-                            case ItemRarityID.Cyan:
-                                rarityColor = new Vector3(4, 195, 249);
-                                break;
-                            case ItemRarityID.Red:
-                                rarityColor = new Vector3(225, 6, 67);
-                                break;
-                            case ItemRarityID.Purple:
-                                rarityColor = new Vector3(178, 39, 253);
-                                break;
-                            case ItemRarityID.Quest:
-                                rarityColor = new Vector3(241, 165, 0);
-                                break;
-                            default:
-                                rarityColor = new Vector3(255, 255, 255);
-                                break;
-                        }
-                    }
-                    if (LootBeams.modRarities.TryGetValue(item.rare, out string name))
-                    {
-                        rarityColor = ModContent.Find<ModRarity>(name).RarityColor.ToVector3() * new Vector3(255);
-                    }
-                    try
-                    {
-                        if (config.ColorOverrides.ContainsKey(itemd))
-                        {
-                            if (config.ColorOverrides.TryGetValue(itemd, out Color color))
-                                rarityColor = color.ToVector3() * new Vector3(255);
-                        }
-                    }
-                    catch
-                    {
-                        Mod.Logger.Error("[LootBeams] ItemDefinition or Color is invalid! How did this happen?");
-                    };
+                    rarityColor = ModContent.Find<ModRarity>(name).RarityColor.ToVector3() * new Vector3(255);
                 }
+                try
+                {
+                    if (config.ColorOverrides.ContainsKey(itemd))
+                    {
+                        if (config.ColorOverrides.TryGetValue(itemd, out Color color))
+                            rarityColor = color.ToVector3() * new Vector3(255);
+                    }
+                }
+                catch
+                {
+                    Mod.Logger.Error("[LootBeams] ItemDefinition or Color is invalid! How did this happen?");
+                };
+                #endregion
+                #region Beam Drawing
                 beamColor = new Color(rarityColor.X / 255f, rarityColor.Y / 255f, rarityColor.Z / 255f);
                 float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((item.width / 16 + item.height / 16) / 2, .25f, 5f);
-                if (config.CompatibilityMode)
-                    glowScale = .3f + .05f * Utils.Clamp((item.width / 16 + item.height / 16) / 2, .25f, 5f);
                 Vector2 screenCenter = new Vector2(
                     item.Center.X - Main.screenPosition.X,
                     item.Center.Y - Main.screenPosition.Y
                     );
-                if (config.CompatibilityMode)
+                if (config.CustomWhitelist.Contains(itemd) || 
+                    (config.HighlightQuest && (item.questItem || item.rare == ItemRarityID.Quest)) || 
+                    (config.HighlightExpert && (item.expert || item.rare == ItemRarityID.Expert)) || 
+                    (config.HighlightMaster && (item.master || item.rare == ItemRarityID.Master)) ||
+                    (config.MinRarity > -2 && item.rare >= config.MinRarity && item.value >= config.MinValue && 
+                    !(item.questItem || item.rare == ItemRarityID.Quest) && 
+                    !(item.expert || item.rare == ItemRarityID.Expert) && 
+                    !(item.master || item.rare == ItemRarityID.Master)))
                 {
-                    if (config.CustomWhitelist.Contains(itemd) || (config.HighlightQuest && (item.questItem || item.rare == ItemRarityID.Quest)) || (config.HighlightExpert && (item.expert || item.rare == ItemRarityID.Expert)) || (config.HighlightMaster && (item.master || item.rare == ItemRarityID.Master)))
+                    if (config.UseMiniBeam.Contains(itemd))
                     {
-                        if (config.UseMiniBeam.Contains(itemd))
-                        {
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
-                        }
-                        else
-                        {
-                            float exScale = config.BeamScale;
-                            float exGlowScale = config.GlowScale;
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                        }
+                        Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
+                        spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
+                        texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
+                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
+                        texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
+                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
                     }
-                    else if (((config.MinRarity > -2 && item.rare >= config.MinRarity && item.value >= config.MinValue) || config.ColorMode) && !(item.questItem || item.rare == ItemRarityID.Quest) && !(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
+                    else
                     {
-                        if (config.UseMiniBeam.Contains(itemd))
-                        {
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
-                        }
-                        else
-                        {
-                            float exScale = config.BeamScale;
-                            float exGlowScale = config.GlowScale;
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                        }
+                        float exScale = config.BeamScale;
+                        float exGlowScale = config.GlowScale;
+                        Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
+                        spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                        texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
+                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
+                        texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
+                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
                     }
                 }
-                else
-                {
-                    if (config.CustomWhitelist.Contains(itemd) || (config.HighlightQuest && (item.questItem || item.rare == ItemRarityID.Quest)) || (config.HighlightExpert && (item.expert || item.rare == ItemRarityID.Expert)) || (config.HighlightMaster && (item.master || item.rare == ItemRarityID.Master)))
-                    {
-                        if (config.UseMiniBeam.Contains(itemd))
-                        {
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
-                        }
-                        else
-                        {
-                            float exScale = config.BeamScale;
-                            float exGlowScale = config.GlowScale;
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                        }
-                    }
-                    else if (((config.MinRarity > -2 && item.rare >= config.MinRarity && (item.value >= config.MinValue || item.type == ItemID.Present)) || config.ColorMode) && !(item.questItem || item.rare == ItemRarityID.Quest) && !(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
-                    {
-                        if (config.UseMiniBeam.Contains(itemd))
-                        {
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
-                        }
-                        else
-                        {
-                            float exScale = config.BeamScale;
-                            float exGlowScale = config.GlowScale;
-                            Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                            spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                            texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                            spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                        }
-                    }
-                }
-
+                #endregion
                 if (fadeIn < 1f)
                     fadeIn += .0125f;
                 else if (fadeIn > 1f)
@@ -568,26 +444,5 @@ namespace LootBeams
         [Range(0f, 1f)]
         [DefaultValue(1f)]
         public float GlowOpacity { get; set; }
-
-        [Label("Alternate Color Mode")]
-        [Tooltip("Changes the colors to match that of Borderlands.\n" +
-            "Beam colors are dependant on the item's buy price (refer to Minimum Value's tooltip for conversion):\n" +
-            "No Value to 5 silver = White, 5 silver to 50 silver = Green\n" +
-            "50 silver to 5 gold = Blue, 5 gold to 50 gold = Purple\n" +
-            "50 gold and above = Orange\n" +
-            "Expert items are always orange (Legendary), whereas Quest and Master items are always seafoam green (Pearlescent)\n" +
-            "Coins are also always yellow and defender medals are always seafoam green.\n" +
-            "This alternate color mode will override most other config options, though blacklists and scale/opacity configuration will still apply.\n" +
-            "Default: Off")]
-        [DefaultValue(false)]
-        public bool ColorMode { get; set; }
-
-        [Label("Use Simplified Rendering")]
-        [Tooltip("Disables dynamic rendering in favor of a simpler implementation\n" +
-            "In short this means that the beams will not fade in, and the glow effect will not pulse\n" +
-            "Scale and opacity configuration options will still apply\n" +
-            "Default: Off")]
-        [DefaultValue(false)]
-        public bool CompatibilityMode { get; set; }
     }
 }
