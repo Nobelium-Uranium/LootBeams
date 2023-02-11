@@ -156,63 +156,30 @@ namespace LootBeams
                     rarityColor = new Vector3(255, Main.masterColor * 200, 0f);
                 else if (!(item.expert || item.rare == ItemRarityID.Expert) && !(item.master || item.rare == ItemRarityID.Master))
                 {
-                    switch (item.rare)
+                    rarityColor = item.rare switch
                     {
-                        case ItemRarityID.Gray:
-                            rarityColor = new Vector3(100, 100, 100);
-                            break;
-                        case ItemRarityID.Blue:
-                            rarityColor = new Vector3(134, 134, 229);
-                            break;
-                        case ItemRarityID.Green:
-                            rarityColor = new Vector3(146, 248, 146);
-                            break;
-                        case ItemRarityID.Orange:
-                            rarityColor = new Vector3(233, 182, 136);
-                            break;
-                        case ItemRarityID.LightRed:
-                            rarityColor = new Vector3(244, 144, 144);
-                            break;
-                        case ItemRarityID.Pink:
-                            rarityColor = new Vector3(248, 146, 248);
-                            break;
-                        case ItemRarityID.LightPurple:
-                            rarityColor = new Vector3(190, 144, 229);
-                            break;
-                        case ItemRarityID.Lime:
-                            rarityColor = new Vector3(140, 241, 10);
-                            break;
-                        case ItemRarityID.Yellow:
-                            rarityColor = new Vector3(249, 249, 9);
-                            break;
-                        case ItemRarityID.Cyan:
-                            rarityColor = new Vector3(4, 195, 249);
-                            break;
-                        case ItemRarityID.Red:
-                            rarityColor = new Vector3(225, 6, 67);
-                            break;
-                        case ItemRarityID.Purple:
-                            rarityColor = new Vector3(178, 39, 253);
-                            break;
-                        case ItemRarityID.Quest:
-                            rarityColor = new Vector3(241, 165, 0);
-                            break;
-                        default:
-                            rarityColor = new Vector3(255, 255, 255);
-                            break;
-                    }
+                        ItemRarityID.Gray => new Vector3(100, 100, 100),
+                        ItemRarityID.Blue => new Vector3(134, 134, 229),
+                        ItemRarityID.Green => new Vector3(146, 248, 146),
+                        ItemRarityID.Orange => new Vector3(233, 182, 136),
+                        ItemRarityID.LightRed => new Vector3(244, 144, 144),
+                        ItemRarityID.Pink => new Vector3(248, 146, 248),
+                        ItemRarityID.LightPurple => new Vector3(190, 144, 229),
+                        ItemRarityID.Lime => new Vector3(140, 241, 10),
+                        ItemRarityID.Yellow => new Vector3(249, 249, 9),
+                        ItemRarityID.Cyan => new Vector3(4, 195, 249),
+                        ItemRarityID.Red => new Vector3(225, 6, 67),
+                        ItemRarityID.Purple => new Vector3(178, 39, 253),
+                        ItemRarityID.Quest => new Vector3(241, 165, 0),
+                        _ => new Vector3(255, 255, 255),
+                    };
                 }
                 if (LootBeams.modRarities.TryGetValue(item.rare, out string name))
-                {
                     rarityColor = ModContent.Find<ModRarity>(name).RarityColor.ToVector3() * new Vector3(255);
-                }
                 try
                 {
-                    if (config.ColorOverrides.ContainsKey(itemd))
-                    {
-                        if (config.ColorOverrides.TryGetValue(itemd, out Color color))
-                            rarityColor = color.ToVector3() * new Vector3(255);
-                    }
+                    if (config.ColorOverrides.ContainsKey(itemd) && config.ColorOverrides.TryGetValue(itemd, out Color color))
+                        rarityColor = color.ToVector3() * new Vector3(255);
                 }
                 catch
                 {
@@ -235,26 +202,19 @@ namespace LootBeams
                     !(item.expert || item.rare == ItemRarityID.Expert) && 
                     !(item.master || item.rare == ItemRarityID.Master)))
                 {
+                    float exScale = config.BeamScale;
+                    float exGlowScale = config.GlowScale;
                     if (config.UseMiniBeam.Contains(itemd))
                     {
-                        Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                        spriteBatch.Draw(texture, screenCenter - new Vector2(0, 28), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                        texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, 0.5f, SpriteEffects.None, 0);
-                        texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * 0.5f, SpriteEffects.None, 0);
+                        exScale = .5f;
+                        exGlowScale = .5f;
                     }
-                    else
-                    {
-                        float exScale = config.BeamScale;
-                        float exGlowScale = config.GlowScale;
-                        Texture2D texture = Mod.Assets.Request<Texture2D>("LootBeam").Value;
-                        spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                        texture = Mod.Assets.Request<Texture2D>("LootCenter").Value;
-                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                        texture = Mod.Assets.Request<Texture2D>("LootGlow").Value;
-                        spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                    }
+                    Texture2D texture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeam").Value;
+                    spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                    texture = Mod.Assets.Request<Texture2D>("Glows/Center").Value;
+                    spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
+                    texture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlow").Value;
+                    spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
                 }
                 #endregion
                 if (fadeIn < 1f)
@@ -326,7 +286,8 @@ namespace LootBeams
             };
 
         [Label("Custom Blacklist")]
-        [Tooltip("These items will NEVER have a loot beam regardless of conditions.")]
+        [Tooltip("These items will NEVER have a loot beam regardless of conditions.\n" +
+            "Takes priority over the custom whitelist.")]
         public List<ItemDefinition> CustomBlacklist = new List<ItemDefinition>
             {
                 new ItemDefinition(ItemID.Heart),
