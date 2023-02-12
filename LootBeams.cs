@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
+using static LootBeams.LootBeamEnums;
 
 namespace LootBeams
 {
@@ -24,27 +27,42 @@ namespace LootBeams
         }
     }
 
+    public static class LootBeamEnums
+    {
+        public enum BeamStyle
+        {
+            Simple,
+            Arrow
+        }
+        public enum GlowStyle
+        {
+            Simple
+        }
+    }
+
     //Simplifies initialization as struct
     public struct LootBeamData
     {
         public Vector3 rarityColor;
         public Color beamColor;
         public float fadeIn = 0f;
+        public int timeSinceSpawn = 0;
         public float beamAlpha = 0f;
-        public int beamDir = 1;
 
         public int type = ItemID.None;
         public bool init = false;
+        public bool beingDrawn = false;
 
-        public LootBeamData(Vector3 rarityColor, Color beamColor, float fadeIn, float beamAlpha, int beamDir, int type, bool init)
+        public LootBeamData(Vector3 rarityColor, Color beamColor, float fadeIn, int timeSinceSpawn, float beamAlpha, int type, bool init, bool beingDrawn)
         {
             this.rarityColor = rarityColor;
             this.beamColor = beamColor;
             this.fadeIn = fadeIn;
+            this.timeSinceSpawn = timeSinceSpawn;
             this.beamAlpha = beamAlpha;
-            this.beamDir = beamDir;
             this.type = type;
             this.init = init;
+            this.beingDrawn = beingDrawn;
         }
     }
 
@@ -130,25 +148,14 @@ namespace LootBeams
             ref Vector3 rarityColor = ref lootBeamData.rarityColor;
             ref Color beamColor = ref lootBeamData.beamColor;
             ref float fadeIn = ref lootBeamData.fadeIn;
+            ref int timeSinceSpawn = ref lootBeamData.timeSinceSpawn;
             ref float beamAlpha = ref lootBeamData.beamAlpha;
-            ref int beamDir = ref lootBeamData.beamDir;
+
+            ref bool beingDrawn = ref lootBeamData.beingDrawn;
 
             ItemDefinition itemd = new ItemDefinition(item.type);
             if (!config.CustomBlacklist.Contains(itemd))
             {
-                if (beamDir == 0)
-                    beamDir = 1;
-                beamAlpha += (float)beamDir * .0125f;
-                if (beamAlpha > 1f)
-                {
-                    beamAlpha = 1f;
-                    beamDir = -1;
-                }
-                if (beamAlpha < 0f)
-                {
-                    beamAlpha = 0f;
-                    beamDir = 1;
-                }
                 #region Color Handling
                 if (item.expert || item.rare == ItemRarityID.Expert)
                     rarityColor = Main.DiscoColor.ToVector3() * new Vector3(255);
@@ -185,14 +192,14 @@ namespace LootBeams
                 {
                     Mod.Logger.Error("[LootBeams] ItemDefinition or Color is invalid! How did this happen?");
                 };
+                beamColor = new Color(rarityColor.X / 255f, rarityColor.Y / 255f, rarityColor.Z / 255f);
                 #endregion
                 #region Beam Drawing
-                beamColor = new Color(rarityColor.X / 255f, rarityColor.Y / 255f, rarityColor.Z / 255f);
-                float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((item.width / 16 + item.height / 16) / 2, .25f, 5f);
                 Vector2 screenCenter = new Vector2(
                     item.Center.X - Main.screenPosition.X,
-                    item.Center.Y - Main.screenPosition.Y
-                    );
+                    item.Hitbox.Bottom - Main.screenPosition.Y
+                    ); // Remember to subtract by the item's texture frameheight divided by 2 to get the texture's actual center
+
                 if (config.CustomWhitelist.Contains(itemd) || 
                     (config.HighlightQuest && (item.questItem || item.rare == ItemRarityID.Quest)) || 
                     (config.HighlightExpert && (item.expert || item.rare == ItemRarityID.Expert)) || 
@@ -202,6 +209,15 @@ namespace LootBeams
                     !(item.expert || item.rare == ItemRarityID.Expert) && 
                     !(item.master || item.rare == ItemRarityID.Master)))
                 {
+                    Texture2D itemTex = TextureAssets.Item[item.type].Value;
+                    int itemFrameHeight = itemTex.Height;
+                    if (Main.itemAnimationsRegistered.Contains(item.type))
+                    {
+                        if (Main.itemAnimations[item.type].FrameCount > 1)
+                            itemFrameHeight /= Main.itemAnimations[item.type].FrameCount;
+                    }
+                    Vector2 itemTexSize = new Vector2(itemTex.Width, itemFrameHeight);
+
                     float exScale = config.BeamScale;
                     float exGlowScale = config.GlowScale;
                     if (config.UseMiniBeam.Contains(itemd))
@@ -209,12 +225,32 @@ namespace LootBeams
                         exScale = .5f;
                         exGlowScale = .5f;
                     }
-                    Texture2D texture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeam").Value;
-                    spriteBatch.Draw(texture, screenCenter - new Vector2(0, 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, texture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                    texture = Mod.Assets.Request<Texture2D>("Glows/Center").Value;
-                    spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, texture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                    texture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlow").Value;
-                    spriteBatch.Draw(texture, screenCenter, null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, texture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
+
+                    beamAlpha = Utils.Clamp(((float)Math.Sin(MathHelper.ToRadians(timeSinceSpawn * 2)) + 1f) * .5f, 0f, 1f);
+                    Texture2D beamTexture;
+                    switch (config.BeamStyle)
+                    {
+                        default:
+                            break;
+                        case (int)BeamStyle.Simple:
+                            beamTexture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeam").Value;
+                            spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f + 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                            beamTexture = Mod.Assets.Request<Texture2D>("Glows/Center").Value;
+                            spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, beamTexture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
+                            break;
+                    }
+                    Texture2D glowTexture;
+                    switch (config.GlowStyle)
+                    {
+                        default:
+                            break;
+                        case (int)GlowStyle.Simple:
+                            float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((itemTex.Width / 16 + itemFrameHeight / 16) / 2, .25f, 5f);
+                            glowTexture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlow").Value;
+                            spriteBatch.Draw(glowTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, glowTexture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
+                            break;
+                    }
+                    beingDrawn = true;
                 }
                 #endregion
                 if (fadeIn < 1f)
@@ -223,6 +259,67 @@ namespace LootBeams
                     fadeIn = 1f;
             }
             return base.PreDrawInWorld(item, spriteBatch, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+        }
+        public override void PostDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
+        {
+            //Edge case: Somehow whoAmI is bigger than the initial length
+            if (whoAmI >= LootBeamSystem.lootBeamDataByIndex.Length)
+                Array.Resize(ref LootBeamSystem.lootBeamDataByIndex, whoAmI + 1); //No need to init new entries as the type is not a class
+
+            //All ref as we are modifying persistent data
+            ref LootBeamData lootBeamData = ref LootBeamSystem.lootBeamDataByIndex[whoAmI];
+
+            if (!lootBeamData.init)
+                return;
+
+            ref Vector3 rarityColor = ref lootBeamData.rarityColor;
+            ref Color beamColor = ref lootBeamData.beamColor;
+            ref float fadeIn = ref lootBeamData.fadeIn;
+            ref int timeSinceSpawn = ref lootBeamData.timeSinceSpawn;
+            ref float beamAlpha = ref lootBeamData.beamAlpha;
+
+            ref bool beingDrawn = ref lootBeamData.beingDrawn;
+
+            if (beingDrawn)
+            {
+                ItemDefinition itemd = new ItemDefinition(item.type);
+                Texture2D itemTex = TextureAssets.Item[item.type].Value;
+                int itemFrameHeight = itemTex.Height;
+                if (Main.itemAnimationsRegistered.Contains(item.type))
+                {
+                    if (Main.itemAnimations[item.type].FrameCount > 1)
+                        itemFrameHeight /= Main.itemAnimations[item.type].FrameCount;
+                }
+                Vector2 itemTexSize = new Vector2(itemTex.Width, itemFrameHeight);
+
+                Vector2 screenCenter = new Vector2(
+                    item.Center.X - Main.screenPosition.X,
+                    item.Hitbox.Bottom - Main.screenPosition.Y
+                    ); // Remember to subtract by the item's texture frameheight divided by 2 to get the texture's actual center
+
+                float exScale = config.BeamScale;
+                float exGlowScale = config.GlowScale;
+                if (config.UseMiniBeam.Contains(itemd))
+                {
+                    exScale = .5f;
+                    exGlowScale = .5f;
+                }
+
+                Texture2D beamTexture;
+                switch (config.BeamStyle)
+                {
+                    default:
+                        break;
+                    case (int)BeamStyle.Arrow:
+                        float pokeRate = Utils.Clamp(((float)Math.Sin(MathHelper.ToRadians(timeSinceSpawn * 3)) + 1f) * .5f, 0f, 1f);
+                        float arrowOffset = 1f - Utils.Clamp(MathHelper.Lerp(-3f, 1f, pokeRate), 0f, 1f);
+                        beamTexture = Mod.Assets.Request<Texture2D>("Beams/Arrow").Value;
+                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight + (beamTexture.Height * config.BeamScale) + (beamTexture.Height * arrowOffset * config.BeamScale)), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                        break;
+                }
+
+                timeSinceSpawn++;
+            }
         }
     }
 
@@ -329,6 +426,20 @@ namespace LootBeams
                 new ItemDefinition(ItemID.NebulaPickup2),
                 new ItemDefinition(ItemID.NebulaPickup3)
             };
+
+        [Label("Beam Style")]
+        [Tooltip("Allows you to change the visuals of the beam effect.\n" +
+            "Range: 0 to 1")]
+        [Range(0, 1)]
+        [DefaultValue(0)]
+        public int BeamStyle { get; set; }
+
+        [Label("Glow Style")]
+        [Tooltip("Allows you to change the visuals of the glow effect.\n" +
+            "No extra styles are currently implemented.")]
+        [Range(0, 0)]
+        [DefaultValue(0)]
+        public int GlowStyle { get; set; }
 
         [Label("Minimum Rarity")]
         [Tooltip("The minimum rarity for an item to have a loot beam?\n" +

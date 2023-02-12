@@ -4,8 +4,7 @@ Gives items Borderlands-style loot beams, with the colors corresponding to their
 Yes, I know the beams of light on items were popularized by Diablo, I just had Borderlands as my main source of inspiration for the effect.
 
 The mod is fairly configurable, there's a minimum rarity and value of items required for loot beams to appear, a whitelist and blacklist system, and even a way to customize the beam colors for specific items.
-The alternate color mode was recently removed due to it honestly being unnecessary and causing difficulty in updating the mod, I do have plans to add more types of beams to make up for that however.
-An overhauled UI to configure the mod is also planned to be implemented sometime in the future.
+!! NEW UPDATE !!: You can now change the style of the beam and glow via the config menu, currently there is only 1 extra beam style, no new glow styles... yet. In the future you'll be able to mix and match beam and glow styles as you please.
 
 If you're using Calamity alongside this mod, I highly recommend also using the Calamity Rarities mod, which can be found here: https://steamcommunity.com/sharedfiles/filedetails/?id=2853817477
 
