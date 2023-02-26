@@ -31,11 +31,13 @@ namespace LootBeams
     {
         public enum BeamStyle
         {
+            None,
             Simple,
             Arrow
         }
         public enum GlowStyle
         {
+            None,
             Simple
         }
     }
@@ -429,16 +431,18 @@ namespace LootBeams
 
         [Label("Beam Style")]
         [Tooltip("Allows you to change the visuals of the beam effect.\n" +
-            "Range: 0 to 1")]
-        [Range(0, 1)]
-        [DefaultValue(0)]
+            "Set to 0 to disable the effect.\n" +
+            "1 = Simple, 2 = Arrow")]
+        [Range(0, 2)]
+        [DefaultValue(1)]
         public int BeamStyle { get; set; }
 
         [Label("Glow Style")]
         [Tooltip("Allows you to change the visuals of the glow effect.\n" +
+            "Set to 0 to disable the effect.\n" +
             "No extra styles are currently implemented.")]
-        [Range(0, 0)]
-        [DefaultValue(0)]
+        [Range(0, 1)]
+        [DefaultValue(1)]
         public int GlowStyle { get; set; }
 
         [Label("Minimum Rarity")]
