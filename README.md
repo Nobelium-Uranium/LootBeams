@@ -13,6 +13,4 @@ If you're using Calamity alongside this mod, I highly recommend also using the C
 
 If you have a bug to report or would like to contribute, consider checking out the mod's github repository: https://github.com/Nobelium-Uranium/LootBeams
 
-# You can access the Steam Workshop page here:
-
-https://steamcommunity.com/sharedfiles/filedetails/?id=2847872897
+You can access the Steam Workshop page here: https://steamcommunity.com/sharedfiles/filedetails/?id=2847872897
