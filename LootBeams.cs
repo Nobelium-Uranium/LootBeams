@@ -4,12 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Terraria;
-using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
-using static LootBeams.LootBeamEnums;
+//using static LootBeams.LootBeamEnums;
 
 namespace LootBeams
 {
@@ -27,20 +26,21 @@ namespace LootBeams
         }
     }
 
-    public static class LootBeamEnums
+    /*public static class LootBeamEnums
     {
         public enum BeamStyle
         {
             None,
             Simple,
-            Arrow
+            Arrow,
+            ArrowAnim
         }
         public enum GlowStyle
         {
             None,
             Simple
         }
-    }
+    }*/
 
     //Simplifies initialization as struct
     public struct LootBeamData
@@ -70,7 +70,7 @@ namespace LootBeams
 
     public class LootBeamPlayer : ModPlayer
     {
-        public override void OnEnterWorld(Player player)
+        public override void OnEnterWorld()
         {
             //Otherwise when world hopping there's a chance that the beams stay
             LootBeamSystem.Init();
@@ -159,6 +159,7 @@ namespace LootBeams
             if (!config.CustomBlacklist.Contains(itemd))
             {
                 #region Color Handling
+                // Vanilla colors are hardcoded, there's no accessible way to reference these colors so we simply use our own hardcoded values
                 if (item.expert || item.rare == ItemRarityID.Expert)
                     rarityColor = Main.DiscoColor.ToVector3() * new Vector3(255);
                 else if (item.master || item.rare == ItemRarityID.Master)
@@ -167,19 +168,19 @@ namespace LootBeams
                 {
                     rarityColor = item.rare switch
                     {
-                        ItemRarityID.Gray => new Vector3(100, 100, 100),
-                        ItemRarityID.Blue => new Vector3(134, 134, 229),
-                        ItemRarityID.Green => new Vector3(146, 248, 146),
-                        ItemRarityID.Orange => new Vector3(233, 182, 136),
-                        ItemRarityID.LightRed => new Vector3(244, 144, 144),
-                        ItemRarityID.Pink => new Vector3(248, 146, 248),
-                        ItemRarityID.LightPurple => new Vector3(190, 144, 229),
-                        ItemRarityID.Lime => new Vector3(140, 241, 10),
-                        ItemRarityID.Yellow => new Vector3(249, 249, 9),
-                        ItemRarityID.Cyan => new Vector3(4, 195, 249),
-                        ItemRarityID.Red => new Vector3(225, 6, 67),
-                        ItemRarityID.Purple => new Vector3(178, 39, 253),
-                        ItemRarityID.Quest => new Vector3(241, 165, 0),
+                        ItemRarityID.Gray => new Vector3(130, 130, 130),
+                        ItemRarityID.Blue => new Vector3(150, 150, 255),
+                        ItemRarityID.Green => new Vector3(150, 255, 150),
+                        ItemRarityID.Orange => new Vector3(255, 200, 150),
+                        ItemRarityID.LightRed => new Vector3(255, 150, 150),
+                        ItemRarityID.Pink => new Vector3(255, 150, 255),
+                        ItemRarityID.LightPurple => new Vector3(210, 160, 255),
+                        ItemRarityID.Lime => new Vector3(150, 255, 10),
+                        ItemRarityID.Yellow => new Vector3(255, 255, 10),
+                        ItemRarityID.Cyan => new Vector3(5, 200, 255),
+                        ItemRarityID.Red => new Vector3(255, 40, 100),
+                        ItemRarityID.Purple => new Vector3(180, 40, 255),
+                        ItemRarityID.Quest => new Vector3(255, 175, 0),
                         _ => new Vector3(255, 255, 255),
                     };
                 }
@@ -194,6 +195,8 @@ namespace LootBeams
                 {
                     Mod.Logger.Error("[LootBeams] ItemDefinition or Color is invalid! How did this happen?");
                 };
+                // Converting Vector3 to Color is weird, hence the necessitated use of division here
+                // In my experience, just using the values without division always produces a white color
                 beamColor = new Color(rarityColor.X / 255f, rarityColor.Y / 255f, rarityColor.Z / 255f);
                 #endregion
                 #region Beam Drawing
@@ -209,7 +212,8 @@ namespace LootBeams
                     (config.MinRarity > -2 && item.rare >= config.MinRarity && item.value >= config.MinValue && 
                     !(item.questItem || item.rare == ItemRarityID.Quest) && 
                     !(item.expert || item.rare == ItemRarityID.Expert) && 
-                    !(item.master || item.rare == ItemRarityID.Master)))
+                    !(item.master || item.rare == ItemRarityID.Master))
+                    )
                 {
                     Texture2D itemTex = TextureAssets.Item[item.type].Value;
                     int itemFrameHeight = itemTex.Height;
@@ -230,27 +234,29 @@ namespace LootBeams
 
                     beamAlpha = Utils.Clamp(((float)Math.Sin(MathHelper.ToRadians(timeSinceSpawn * 2)) + 1f) * .5f, 0f, 1f);
                     Texture2D beamTexture;
-                    switch (config.BeamStyle)
-                    {
-                        default:
-                            break;
-                        case (int)BeamStyle.Simple:
-                            beamTexture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeam").Value;
-                            spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f + 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                            beamTexture = Mod.Assets.Request<Texture2D>("Glows/Center").Value;
-                            spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, beamTexture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
-                            break;
-                    }
                     Texture2D glowTexture;
-                    switch (config.GlowStyle)
+                    // Putting these seperately just in case...
+                    if (config.DrawAdditive)
                     {
-                        default:
-                            break;
-                        case (int)GlowStyle.Simple:
-                            float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((itemTex.Width / 16 + itemFrameHeight / 16) / 2, .25f, 5f);
-                            glowTexture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlow").Value;
-                            spriteBatch.Draw(glowTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, glowTexture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
-                            break;
+                        StartAdditive(spriteBatch);
+                        beamTexture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeamAdditive").Value;
+                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f + 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                        beamTexture = Mod.Assets.Request<Texture2D>("Glows/CenterAdditive").Value;
+                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, beamTexture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
+                        float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((itemTex.Width / 16 + itemFrameHeight / 16) / 2, .25f, 5f);
+                        glowTexture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlowAdditive").Value;
+                        spriteBatch.Draw(glowTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, glowTexture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
+                        StopAdditive(spriteBatch);
+                    }
+                    else
+                    {
+                        beamTexture = Mod.Assets.Request<Texture2D>("Beams/SimpleBeam").Value;
+                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f + 56 * exScale), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
+                        beamTexture = Mod.Assets.Request<Texture2D>("Glows/Center").Value;
+                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.GlowOpacity, 0, beamTexture.Size() * 0.5f, exGlowScale, SpriteEffects.None, 0);
+                        float glowScale = .3f + beamAlpha * .05f * Utils.Clamp((itemTex.Width / 16 + itemFrameHeight / 16) / 2, .25f, 5f);
+                        glowTexture = Mod.Assets.Request<Texture2D>("Glows/SimpleGlow").Value;
+                        spriteBatch.Draw(glowTexture, screenCenter - new Vector2(0, itemFrameHeight * .5f), null, beamColor * fadeIn * (.5f + beamAlpha * .5f) * config.GlowOpacity, 0, glowTexture.Size() * 0.5f, glowScale * exGlowScale, SpriteEffects.None, 0);
                     }
                     beingDrawn = true;
                 }
@@ -264,77 +270,38 @@ namespace LootBeams
         }
         public override void PostDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
         {
-            //Edge case: Somehow whoAmI is bigger than the initial length
-            if (whoAmI >= LootBeamSystem.lootBeamDataByIndex.Length)
-                Array.Resize(ref LootBeamSystem.lootBeamDataByIndex, whoAmI + 1); //No need to init new entries as the type is not a class
-
             //All ref as we are modifying persistent data
             ref LootBeamData lootBeamData = ref LootBeamSystem.lootBeamDataByIndex[whoAmI];
 
             if (!lootBeamData.init)
                 return;
 
-            ref Vector3 rarityColor = ref lootBeamData.rarityColor;
-            ref Color beamColor = ref lootBeamData.beamColor;
-            ref float fadeIn = ref lootBeamData.fadeIn;
             ref int timeSinceSpawn = ref lootBeamData.timeSinceSpawn;
-            ref float beamAlpha = ref lootBeamData.beamAlpha;
 
             ref bool beingDrawn = ref lootBeamData.beingDrawn;
 
             if (beingDrawn)
-            {
-                ItemDefinition itemd = new ItemDefinition(item.type);
-                Texture2D itemTex = TextureAssets.Item[item.type].Value;
-                int itemFrameHeight = itemTex.Height;
-                if (Main.itemAnimationsRegistered.Contains(item.type))
-                {
-                    if (Main.itemAnimations[item.type].FrameCount > 1)
-                        itemFrameHeight /= Main.itemAnimations[item.type].FrameCount;
-                }
-                Vector2 itemTexSize = new Vector2(itemTex.Width, itemFrameHeight);
-
-                Vector2 screenCenter = new Vector2(
-                    item.Center.X - Main.screenPosition.X,
-                    item.Hitbox.Bottom - Main.screenPosition.Y
-                    ); // Remember to subtract by the item's texture frameheight divided by 2 to get the texture's actual center
-
-                float exScale = config.BeamScale;
-                float exGlowScale = config.GlowScale;
-                if (config.UseMiniBeam.Contains(itemd))
-                {
-                    exScale = .5f;
-                    exGlowScale = .5f;
-                }
-
-                Texture2D beamTexture;
-                switch (config.BeamStyle)
-                {
-                    default:
-                        break;
-                    case (int)BeamStyle.Arrow:
-                        float pokeRate = Utils.Clamp(((float)Math.Sin(MathHelper.ToRadians(timeSinceSpawn * 3)) + 1f) * .5f, 0f, 1f);
-                        float arrowOffset = 1f - Utils.Clamp(MathHelper.Lerp(-3f, 1f, pokeRate), 0f, 1f);
-                        beamTexture = Mod.Assets.Request<Texture2D>("Beams/Arrow").Value;
-                        spriteBatch.Draw(beamTexture, screenCenter - new Vector2(0, itemFrameHeight + (beamTexture.Height * config.BeamScale) + (beamTexture.Height * arrowOffset * config.BeamScale)), null, beamColor * fadeIn * (.75f + beamAlpha * .25f) * config.BeamOpacity, 0, beamTexture.Size() * 0.5f, exScale, SpriteEffects.None, 0);
-                        break;
-                }
-
                 timeSinceSpawn++;
-            }
+        }
+
+        private static void StartAdditive(SpriteBatch spriteBatch)
+        {
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.TransformationMatrix);
+        }
+
+        private static void StopAdditive(SpriteBatch spriteBatch)
+        {
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
         }
     }
 
-    [Label("Config")]
     public class LootBeamConfig : ModConfig
     {
         public override ConfigScope Mode => ConfigScope.ClientSide;
         public static LootBeamConfig Instance;
 
-        [Label("Color Overrides")]
-        [Tooltip("Allows customizing loot beam colors for specific items.\n" +
-            "Currently does not support rarity-wide color definitions.\n" +
-            "Note: Alpha value goes unused, but should be set to 255 for an accurate color preview.")]
         public Dictionary<ItemDefinition, Color> ColorOverrides = new Dictionary<ItemDefinition, Color>
             {
                 { new ItemDefinition(ItemID.CopperCoin), new Color(.95f, .55f, .4f, 1f) },
@@ -354,8 +321,6 @@ namespace LootBeams
                 { new ItemDefinition(ItemID.NebulaPickup3), new Color(.5f, 0f, .5f, 1f) }
             };
 
-        [Label("Custom Whitelist")]
-        [Tooltip("These items will ALWAYS have a loot beam regardless of conditions.")]
         public List<ItemDefinition> CustomWhitelist = new List<ItemDefinition>
             {
                 new ItemDefinition(ItemID.CopperCoin),
@@ -384,9 +349,6 @@ namespace LootBeams
                 new ItemDefinition(ItemID.RodofDiscord)
             };
 
-        [Label("Custom Blacklist")]
-        [Tooltip("These items will NEVER have a loot beam regardless of conditions.\n" +
-            "Takes priority over the custom whitelist.")]
         public List<ItemDefinition> CustomBlacklist = new List<ItemDefinition>
             {
                 new ItemDefinition(ItemID.Heart),
@@ -407,9 +369,6 @@ namespace LootBeams
                 new ItemDefinition(ItemID.SoulofSight)
             };
 
-        [Label("Minimized Beams")]
-        [Tooltip("These items will have a set loot beam size of 0.5, mainly used for currencies and/or to reduce distraction.\n" +
-            "Opacity affects beam and glow individually as normal.")]
         public List<ItemDefinition> UseMiniBeam = new List<ItemDefinition>
             {
                 new ItemDefinition(ItemID.CopperCoin),
@@ -429,96 +388,48 @@ namespace LootBeams
                 new ItemDefinition(ItemID.NebulaPickup3)
             };
 
-        [Label("Beam Style")]
-        [Tooltip("Allows you to change the visuals of the beam effect.\n" +
-            "Set to 0 to disable the effect.\n" +
-            "1 = Simple, 2 = Arrow")]
-        [Range(0, 2)]
-        [DefaultValue(1)]
-        public int BeamStyle { get; set; }
+        //[Range(0, 3)]
+        //[DefaultValue(1)]
+        //public int BeamStyle { get; set; }
 
-        [Label("Glow Style")]
-        [Tooltip("Allows you to change the visuals of the glow effect.\n" +
-            "Set to 0 to disable the effect.\n" +
-            "No extra styles are currently implemented.")]
-        [Range(0, 1)]
-        [DefaultValue(1)]
-        public int GlowStyle { get; set; }
+        //[Range(0, 1)]
+        //[DefaultValue(1)]
+        //public int GlowStyle { get; set; }
 
-        [Label("Minimum Rarity")]
-        [Tooltip("The minimum rarity for an item to have a loot beam?\n" +
-            "Setting this to -2 will disable the loot beams entirely from non-overriden items. (Check Custom Overrides)\n" +
-            "Range: -2 to 11\n" +
-            "Default: 1")]
         [Range(-2, 11)]
         [DefaultValue(1)]
         public int MinRarity { get; set; }
 
-        [Label("Minimum Value")]
-        [Tooltip("How valuable in copper coins an item must be to have a loot beam?\n" +
-            "Remember: A silver coin is equal to 100 copper, a gold coin is equal to 10,000 copper,\n" +
-            "and a platinum coin is equal to 1,000,000 copper.\n" +
-            "Another important distinction is that this is for BUY value, not sell value,\n" +
-            "so be sure to refer to any relevant wiki to find an item's purchase price.\n" +
-            "Range: More than or equal to 0\n" +
-            "Default: 1")]
         [Range(0, int.MaxValue)]
         [DefaultValue(1)]
         public int MinValue { get; set; }
 
-        [Label("Always Highlight Quest Items")]
-        [Tooltip("Self-explanatory.\n" +
-            "Overrides Minimum Value.\n" +
-            "Default: On")]
         [DefaultValue(true)]
         public bool HighlightQuest { get; set; }
 
-        [Label("Always Highlight Expert Items")]
-        [Tooltip("Self-explanatory.\n" +
-            "Overrides Minimum Value.\n" +
-            "Default: On")]
         [DefaultValue(true)]
         public bool HighlightExpert { get; set; }
 
-        [Label("Always Highlight Master Items")]
-        [Tooltip("Self-explanatory.\n" +
-            "Overrides Minimum Value.\n" +
-            "Default: On")]
         [DefaultValue(true)]
         public bool HighlightMaster { get; set; }
 
-        [Label("Beam Scale")]
-        [Tooltip("Self-explanatory.\n" +
-            "Items defined in the Minimized Beams list always have a scale of 0.5\n" +
-            "Range: 0.5 to 2.0\n" +
-            "Default: 0.75")]
         [Range(.5f, 2f)]
         [DefaultValue(.75f)]
         public float BeamScale { get; set; }
 
-        [Label("Beam Opacity")]
-        [Tooltip("Self-explanatory.\n" +
-            "Range: 0.0 to 1.0\n" +
-            "Default: 1.0")]
         [Range(0f, 1f)]
         [DefaultValue(1f)]
         public float BeamOpacity { get; set; }
 
-        [Label("Glow Scale")]
-        [Tooltip("Self-explanatory.\n" +
-            "Items defined in the Minimized Beams list always have a scale of 0.5\n" +
-            "Range: 0.5 to 2.0\n" +
-            "Default: 0.75")]
         [Range(.5f, 2f)]
         [DefaultValue(.75f)]
         public float GlowScale { get; set; }
 
-        [Label("Glow Opacity")]
-        [Tooltip("Self-explanatory.\n" +
-            "Range: 0.0 to 1.0\n" +
-            "Default: 1.0")]
         [Range(0f, 1f)]
         [DefaultValue(1f)]
         public float GlowOpacity { get; set; }
+
+        [DefaultValue(true)]
+        public bool DrawAdditive { get; set; }
     }
 }

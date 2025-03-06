@@ -1,0 +1,166 @@
+Configs: {
+	LootBeamConfig: {
+		DisplayName: Config
+
+		ColorOverrides: {
+			Label: Color Overrides
+			Tooltip:
+				'''
+				Allows customizing loot beam colors for specific items.
+				Currently does not support rarity-wide color definitions.
+				Note: Alpha value goes unused, but should be set to 255 for an accurate color preview.
+				'''
+		}
+
+		CustomWhitelist: {
+			Label: Custom Whitelist
+			Tooltip: These items will ALWAYS have a loot beam regardless of conditions.
+		}
+
+		CustomBlacklist: {
+			Label: Custom Blacklist
+			Tooltip:
+				'''
+				These items will NEVER have a loot beam regardless of conditions.
+				Takes priority over the custom whitelist.
+				'''
+		}
+
+		UseMiniBeam: {
+			Label: Minimized Beams
+			Tooltip:
+				'''
+				These items will have a set loot beam size of 0.5, mainly used for currencies and/or to reduce distraction.
+				Opacity affects beam and glow individually as normal.
+				'''
+		}
+
+		BeamStyle: {
+			Label: Beam Style
+			Tooltip:
+				'''
+				Allows you to change the visuals of the beam effect.
+				Set to 0 to disable the effect.
+				1 = Simple, 2 = Arrow, 3 Animated Arrow
+				'''
+		}
+
+		GlowStyle: {
+			Label: Glow Style
+			Tooltip:
+				'''
+				Allows you to change the visuals of the glow effect.
+				Set to 0 to disable the effect.
+				No extra styles are currently implemented.
+				'''
+		}
+
+		MinRarity: {
+			Label: Minimum Rarity
+			Tooltip:
+				'''
+				The minimum rarity for an item to have a loot beam?
+				Setting this to -2 will disable the loot beams entirely from non-overriden items. (Check Custom Overrides)
+				Range: -2 to 11
+				Default: 1
+				'''
+		}
+
+		MinValue: {
+			Label: Minimum Value
+			Tooltip:
+				'''
+				How valuable in copper coins an item must be to have a loot beam?
+				Remember: A silver coin is equal to 100 copper, a gold coin is equal to 10,000 copper,
+				and a platinum coin is equal to 1,000,000 copper.
+				Another important distinction is that this is for BUY value, not sell value,
+				so be sure to refer to any relevant wiki to find an item's purchase price.
+				Range: More than or equal to 0
+				Default: 1
+				'''
+		}
+
+		HighlightQuest: {
+			Label: Always Highlight Quest Items
+			Tooltip:
+				'''
+				Self-explanatory.
+				Overrides Minimum Value.
+				Default: On
+				'''
+		}
+
+		HighlightExpert: {
+			Label: Always Highlight Expert Items
+			Tooltip:
+				'''
+				Self-explanatory.
+				Overrides Minimum Value.
+				Default: On
+				'''
+		}
+
+		HighlightMaster: {
+			Label: Always Highlight Master Items
+			Tooltip:
+				'''
+				Self-explanatory.
+				Overrides Minimum Value.
+				Default: On
+				'''
+		}
+
+		BeamScale: {
+			Label: Beam Scale
+			Tooltip:
+				'''
+				Self-explanatory.
+				Items defined in the Minimized Beams list always have a scale of 0.5
+				Range: 0.5 to 2.0
+				Default: 0.75
+				'''
+		}
+
+		BeamOpacity: {
+			Label: Beam Opacity
+			Tooltip:
+				'''
+				Self-explanatory.
+				Range: 0.0 to 1.0
+				Default: 1.0
+				'''
+		}
+
+		GlowScale: {
+			Label: Glow Scale
+			Tooltip:
+				'''
+				Self-explanatory.
+				Items defined in the Minimized Beams list always have a scale of 0.5
+				Range: 0.5 to 2.0
+				Default: 0.75
+				'''
+		}
+
+		GlowOpacity: {
+			Label: Glow Opacity
+			Tooltip:
+				'''
+				Self-explanatory.
+				Range: 0.0 to 1.0
+				Default: 1.0
+				'''
+		}
+
+		DrawAdditive: {
+			Label: Brighter Beams
+			Tooltip:
+				'''
+				When enabled, loot beams will use additive blending during drawing
+				This will cause the beams to look brighter, especially against bright backgrounds
+				Without it, the beams will appear darker, but have more accurate coloration
+				Default: On
+				'''
+		}
+	}
+}
