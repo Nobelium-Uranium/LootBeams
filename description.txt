@@ -1,7 +1,7 @@
 A special thank-you to everyone who has supported this small mod that I threw together in a few minutes, I never would have imagined something like this becoming as popular as it is, and for that I am very grateful.
 
 Latest Update:
-As there has been only one different style for the loot beams (a rather ugly one imo) and they are a pain to code, styling has been completely removed. They might not ever return, but I'll keep the assets around in case I ever find a better approach to beam/glow styles. Sorry for the two people who liked the arrow style.
+Extremely minor behavior change to beams, they now fade out when you grab the item, which should make it pretty satisfying to collect a mountain of items from the ground. There's also a small flash when the beam appears, this (like many other things) of course is configurable.
 
 Gives items Borderlands-style loot beams, with the colors corresponding to their rarity. That's about as simple of a description as you can get.
 Yes, I know the beams of light on items were popularized by Diablo, I just had Borderlands as my main source of inspiration for the effect.

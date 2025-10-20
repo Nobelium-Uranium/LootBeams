@@ -231,6 +231,8 @@ namespace LootBeams
                         exScale = .5f;
                         exGlowScale = .5f;
                     }
+                    else
+                        exGlowScale *= config.FlashScale - fadeIn * (config.FlashScale - 1f);
 
                     beamAlpha = Utils.Clamp(((float)Math.Sin(MathHelper.ToRadians(timeSinceSpawn * 2)) + 1f) * .5f, 0f, 1f);
                     Texture2D beamTexture;
@@ -261,12 +263,16 @@ namespace LootBeams
                     beingDrawn = true;
                 }
                 #endregion
-                if (fadeIn < 1f)
-                    fadeIn += .0125f;
-                else if (fadeIn > 1f)
-                    fadeIn = 1f;
+                fadeIn = Utils.Clamp(fadeIn + .025f, 0f, 1f);
             }
             return base.PreDrawInWorld(item, spriteBatch, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+        }
+        public override bool GrabStyle(Item item, Player player)
+        {
+            ref LootBeamData lootBeamData = ref LootBeamSystem.lootBeamDataByIndex[item.whoAmI];
+            ref float fadeIn = ref lootBeamData.fadeIn;
+            fadeIn = Utils.Clamp(fadeIn - .125f, 0f, 1f);
+            return base.GrabStyle(item, player);
         }
         public override void PostDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
         {
@@ -428,6 +434,10 @@ namespace LootBeams
         [Range(0f, 1f)]
         [DefaultValue(1f)]
         public float GlowOpacity { get; set; }
+
+        [Range(1f, 10f)]
+        [DefaultValue(7.5f)]
+        public float FlashScale { get; set; }
 
         [DefaultValue(true)]
         public bool DrawAdditive { get; set; }
