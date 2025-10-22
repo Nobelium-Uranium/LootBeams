@@ -1,4 +1,4 @@
 displayName = Loot Beams
 author = ChemAtDark
-version = 1.9.4.1
+version = 1.9.4.4
 side = Client

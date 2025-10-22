@@ -263,7 +263,7 @@ namespace LootBeams
                     beingDrawn = true;
                 }
                 #endregion
-                fadeIn = Utils.Clamp(fadeIn + .025f, 0f, 1f);
+                fadeIn = Utils.Clamp(fadeIn + .025f / Math.Max((float)Main.frameRate / 60f, .017f), 0f, 1f);
             }
             return base.PreDrawInWorld(item, spriteBatch, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
         }
@@ -271,7 +271,7 @@ namespace LootBeams
         {
             ref LootBeamData lootBeamData = ref LootBeamSystem.lootBeamDataByIndex[item.whoAmI];
             ref float fadeIn = ref lootBeamData.fadeIn;
-            fadeIn = Utils.Clamp(fadeIn - .125f, 0f, 1f);
+            fadeIn = Utils.Clamp(fadeIn - .125f / Math.Max((float)Main.frameRate / 60f, .017f), 0f, 1f);
             return base.GrabStyle(item, player);
         }
         public override void PostDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
